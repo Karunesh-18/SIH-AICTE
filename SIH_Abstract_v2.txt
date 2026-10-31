@@ -1,0 +1,50 @@
+Waymark: tracking approvals, deadlines and complaints in one place
+SIH 26262 (core), with the SIH 26264 complaint dashboard as an add-on. Team Phoenix Crew, Team ID 199751.
+
+What we are trying to fix
+
+When an institution applies to AICTE, the file passes through scrutiny, an EVC visit, SAC/SHC review and whatever else the Approval Process Handbook asks for. Some approvals also come with conditions: a lease to renew, an undertaking due by a date, a deposit that matures. Today these are chased by phone, email and spreadsheets, region by region. So if you ask how many applications are sitting at the EVC stage, or which institution's lease runs out next month, someone has to go and count. Deadlines slip, and often nobody notices until later.
+
+SIH 26264 describes the same trouble from the complaints side. A complaint about one institution can reach the Regulation Bureau, the Public Grievance Redressal Cell or another cell, and none of them can see what the others are doing. We treated both statements as one problem: dates and case history are scattered, and no single record exists for an institution.
+
+The idea
+
+Everything with a date becomes an Obligation. A stage SLA, an EVC visit, an undertaking, a document expiry, a deposit maturity and a complaint deadline all have the same fields: institution, owner, due date, status and an alert ladder. Status is worked out from the dates (upcoming, due soon, overdue, fulfilled, waived, paused), so every dashboard agrees with every list.
+
+For documents, the default ladder reminds the institution at 90, 60 and 30 days before expiry. It tells the regional officer on the due date and again 3 days after, and goes to the Admin at 10 days overdue. Admins can edit all of this. A database constraint stops the same step from firing twice, and if the clock jumps past several steps only the latest one is sent.
+
+Approval workflow (SIH 26262)
+
+Stages, owner roles, SLAs and allowed actions sit in the database. That is how Only Scrutiny, Scrutiny plus EVC or EVC plus SAC/SHC can be set up without code changes. Forwarding an application moves it on and starts the next clock. An officer can return it for clarification, with a written reason, and the clock pauses until the institution answers. Approval and rejection belong to the final-stage owner, with a note.
+
+The pendency dashboard shows applications by stage, region and officer, ageing against SLA, and the cases that have breached or are close to it. A simple heuristic flags applications likely to breach and lists the factors behind the flag.
+
+EVC: applications that need a visit join a queue. A regional officer schedules it with date, members and venue, which creates an obligation with its own reminders.
+
+Undertakings and documents: an undertaking is stored with its condition, due date and evidence. The institution uploads evidence online and an official verifies it. For uploaded documents such as leases and fire NOCs, the system reads the text (OCR for scans, regular expressions for text files) and suggests an expiry date, showing the matching snippet and a confidence value. Staff confirm, edit or dismiss it. Nothing is created until they do.
+
+Alerts go out in the app and by email, with English and Hindi templates. SMS and WhatsApp are stubs. Reports cover pendency, EVC status, undertakings, document validity, overdue cases and region-wise performance, with CSV export.
+
+Complaint dashboard (SIH 26264)
+
+Each institution has a profile under its AICTE Permanent ID, with every complaint from every bureau. A case carries its ID, date received, category, status, the bureau or cell holding it, the officer, the last action and its date, the next action needed, and an expected disposal date. A running history records each assignment, transfer, escalation, remark and attached document. A transfer needs a reason, and an escalation needs a written note.
+
+The dashboard counts total, pending, under process, disposed, transferred and overdue cases, and breaks them down by bureau, institution, region and age. It also lists institutions that two or more bureaus are handling at once. Officers can search by institution name, Permanent ID, case ID, bureau, region, category, status and date. Reports cover bureau, region and institution views, ageing, disposal rate, overlaps, and monthly or quarterly figures.
+
+Overlap detection has two parts. The first is a plain rule: if one institution has open cases at two or more bureaus, each bureau sees "Potential Overlapping Cases - Coordination Required", even when the descriptions have nothing in common. The second is text similarity (TF-IDF with cosine similarity), which ranks which pairs probably describe the same issue and shows the shared terms. A small bonus applies for matching category, recent dates and different bureaus, but only if the wording already overlaps. An officer decides whether to link the cases or dismiss the alert. Nothing is merged or closed by the system.
+
+Complainant identity is hidden in the API from everyone except the assigned bureau officer and the Admin. Regional officers see a redacted summary, and institution users see only that a case exists, with its category and status. A public portal lets people file a complaint and follow it by tracking ID, but an officer reviews each submission before it is registered.
+
+Build
+
+It is a modular monolith. Next.js and TypeScript on the front, FastAPI and SQLAlchemy on the back, SQLite for the demo with a schema that works on PostgreSQL. Login uses JWT with role checks. APScheduler runs the alerts, and a simulated clock lets us show them live. TF-IDF comes from scikit-learn, OCR from pytesseract. Each use case runs in a single transaction, so the state change, audit entry and timeline entry succeed or fail together.
+
+Limits we set ourselves
+
+The system only advises. It never approves, rejects, penalises or orders an inspection, and every extracted date, score and forecast says how it was produced. We call things what they are: OCR plus rules, TF-IDF similarity, a rule-based risk score, a heuristic forecast. We do not use blockchain. The audit log chains each entry to the last with SHA-256, so an edited row shows up when the chain is verified.
+
+The prototype runs on invented data only: 15 institutions, about 60 applications, 200 obligations and 40 complaints. The stage names and SLAs are placeholders that need checking against the real handbook. It is not an official AICTE system.
+
+What we expect
+
+Less chasing, stuck stages that show up the day they slip, fewer lapsed documents, less duplicated work between bureaus, and a clear owner for each item. We are not quoting percentage gains because we have no real data to measure them. The platform is built so pendency, on-time fulfilment and time to disposal can be measured once real data exists.

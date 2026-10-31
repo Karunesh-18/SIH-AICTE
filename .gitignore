@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build output
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+*.egg-info/
+
+# Python caches and tooling
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+
+# Databases (local dev and test)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite3
+
+# Secrets and local config (keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Uploaded files and logs
+storage/uploads/
+*.log
+scripts/*.log
+
+# Editor, OS and agent tooling
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.impeccable/
+.claude/
+
+# Reference material that is not part of the project
+CrimeGraph-AI-PPT*.pdf
+GPTZero AI Scan*.pdf

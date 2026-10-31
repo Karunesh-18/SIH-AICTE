@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* Tokens follow docs/05 §2 (calm blue, status colours); dark mode via prefers-color-scheme. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #eef1f6;
+  --border: #dfe3ea;
+  --text: #17202c;
+  --text-2: #4f5b6b;
+  --primary: #1f4e8c;
+  --primary-soft: #e6eef9;
+  --nav-bg: #0f2742;
+  --nav-text: #c3d0e0;
+  --nav-active: #ffffff;
+  --nav-active-bg: rgba(255, 255, 255, 0.12);
+  --upcoming: #2f6fb3;
+  --due-soon: #9a6310;
+  --overdue: #b3261e;
+  --fulfilled: #23703f;
+  --muted: #5d6675;
+  --upcoming-bg: #e4eefa;
+  --due-soon-bg: #fbefd5;
+  --overdue-bg: #fbe4e1;
+  --fulfilled-bg: #def2e6;
+  --muted-bg: #e8ebf0;
+  --shadow: 0 1px 2px rgba(15, 39, 66, 0.06), 0 1px 3px rgba(15, 39, 66, 0.04);
+}
+
+/* Theme: data-theme="dark" forces dark, "light" forces light, otherwise follow the OS. */
+:root[data-theme="dark"] {
+  --bg: #0c141f;
+  --surface: #141f2e;
+  --surface-2: #1b2a3d;
+  --border: #26364b;
+  --text: #e8edf4;
+  --text-2: #a4b1c2;
+  --primary: #6aa5ee;
+  --primary-soft: #1a2c47;
+  --nav-bg: #08111c;
+  --upcoming: #7db4f0;
+  --due-soon: #f0b955;
+  --overdue: #ff8a80;
+  --fulfilled: #6fd196;
+  --muted: #a4b1c2;
+  --upcoming-bg: #1a2e4a;
+  --due-soon-bg: #3a2c12;
+  --overdue-bg: #3f1d1b;
+  --fulfilled-bg: #14301f;
+  --muted-bg: #243346;
+  --shadow: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c141f;
+    --surface: #141f2e;
+    --surface-2: #1b2a3d;
+    --border: #26364b;
+    --text: #e8edf4;
+    --text-2: #a4b1c2;
+    --primary: #6aa5ee;
+    --primary-soft: #1a2c47;
+    --nav-bg: #08111c;
+    --upcoming: #7db4f0;
+    --due-soon: #f0b955;
+    --overdue: #ff8a80;
+    --fulfilled: #6fd196;
+    --muted: #a4b1c2;
+    --upcoming-bg: #1a2e4a;
+    --due-soon-bg: #3a2c12;
+    --overdue-bg: #3f1d1b;
+    --fulfilled-bg: #14301f;
+    --muted-bg: #243346;
+    --shadow: none;
+  }
+}
+
+@theme inline {
+  --color-nav: var(--nav-bg);
+  --color-nav-text: var(--nav-text);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-overdue: var(--overdue);
+  --color-due-soon: var(--due-soon);
+  --color-fulfilled: var(--fulfilled);
+  --color-upcoming: var(--upcoming);
+  --font-sans: var(--font-ui), "Noto Sans Devanagari", system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+button:not(:disabled),
+[role="button"],
+select,
+summary {
+  cursor: pointer;
+}
+
+button,
+a,
+select,
+input {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.rise { animation: rise 240ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Theme toggle icon: show the icon of the theme you would switch to. */
+.theme-icon-sun { display: none; }
+:root[data-theme="dark"] .theme-icon-moon { display: none; }
+:root[data-theme="dark"] .theme-icon-sun { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-icon-moon { display: none; }
+  :root:not([data-theme="light"]) .theme-icon-sun { display: block; }
+}

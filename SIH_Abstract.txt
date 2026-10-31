@@ -1,0 +1,54 @@
+WAYMARK: ONE PLATFORM FOR APPROVAL WORKFLOW, COMPLIANCE MONITORING AND ALERTS
+SIH 26262 (core) with SIH 26264 complaint dashboard (add-on) | Team Phoenix Crew | Team ID 199751
+
+THE PROBLEM
+
+AICTE applications move through scrutiny, EVC visits, SAC/SHC review and other stages under the Approval Process Handbook. Many approvals also carry conditions: an undertaking due by a date, a lease that must be renewed, a deposit that matures. Officers follow these by phone, email and spreadsheet across regions. The result is that nobody can quickly say how many applications are stuck at a stage, which ones have crossed their timeline, or which institution's documents lapse next, and deadlines are missed without anyone noticing.
+
+The companion statement, SIH 26264, shows the same pattern for complaints. Cases about one institution can reach the Regulation Bureau, the Public Grievance Redressal Cell and other bureaus with no shared view, so work is duplicated and it is unclear who holds a case.
+
+We read both as one root problem: time-bound items and case history are scattered, and there is no single record per institution.
+
+OUR APPROACH
+
+Waymark models every time-bound thing as one object, an Obligation: a stage SLA, an EVC visit, an undertaking, a document expiry, a fixed-deposit maturity, a complaint timeline. Each has an institution, an owner, a due date, a computed status (upcoming, due soon, overdue, fulfilled, waived or paused) and an alert ladder. One alert engine, one calendar and one overdue dashboard serve all of them.
+
+A default document ladder reminds the institution at 90, 60 and 30 days before expiry, notifies the regional officer on the due date and 3 days after, and escalates to the Admin at 10 days overdue. Ladders are stored in the database and editable. Alerts are idempotent, enforced by a unique database constraint on obligation and step, and if time jumps past several steps only the latest fires, so people are not flooded.
+
+SIH 26262: APPROVAL WORKFLOW AND COMPLIANCE
+
+Configurable routing. Workflows are ordered stages, each with an owner role, SLA in business days and allowed actions (forward, return, approve, reject, escalate). Stages and SLAs live in the database, so combinations such as Only Scrutiny, Scrutiny plus EVC, or EVC plus SAC/SHC are defined, not coded. Forwarding moves the application to the next stage and starts its clock. Returning for deficiency or clarification needs a written reason, pauses the clock and resumes it when the institution responds. Only the final-stage owner can approve or reject, with a note.
+
+Pendency dashboard. Applications by stage, region and officer; ageing against SLA; breached and at-risk cases sorted by days left; escalation with a note. Role-based views for scrutiny, regional and bureau officers, institutions and Admin. A heuristic forecast flags applications likely to breach, with its factors listed.
+
+EVC. Applications needing an EVC enter a queue after preliminary stages. Regional officers schedule visits (date, members, venue), which creates an EVC obligation; reminders and escalation follow the ladder. A calendar shows visits.
+
+Undertakings and documents. An undertaking is recorded with its condition, due date and evidence. The institution uploads evidence online; an official verifies it. Lease deeds, fire NOCs and similar documents carry validity dates. On upload, text is read (OCR for scans, regular expressions for text files) and the system suggests an expiry date with the matched snippet and a confidence value. Staff confirm, edit or dismiss; nothing becomes an obligation without confirmation.
+
+Notifications and reports. In-app and email notifications use English and Hindi templates; SMS and WhatsApp are stubbed behind an interface. Reports cover pendency, EVC status, undertaking compliance, document validity, overdue cases and region-wise performance, with CSV export.
+
+SIH 26264 ADD-ON: COMPLAINT MONITORING AND STATUS DASHBOARD
+
+Each institution has a profile keyed by AICTE Permanent ID with its full complaint history across bureaus. Each case has a unique case ID, date of receipt, category, status, current bureau or cell, assigned officer, last action and its date, next action required and expected disposal date, plus a chronological history of assignments, transfers, escalations, remarks and documents. Transfers need a reason; escalations need a written note.
+
+The dashboard shows total, pending, under process, disposed, transferred and beyond-timeline cases, bureau and cell workload, institution-wise status, ageing and institutions handled by two or more bureaus, filterable by region, bureau and date. Officers can search by institution name, Permanent ID, case ID, bureau, region, category, status and date range. Reports include bureau-wise, region-wise, institution-wise, ageing, disposal rate, overlaps, and monthly or quarterly performance.
+
+Overlap detection works in two layers. First, a rule: when one institution has open cases at two or more bureaus, all involved bureaus see "Potential Overlapping Cases - Coordination Required", even if the descriptions differ. Second, TF-IDF cosine similarity on the case text, with small bonuses for matching category, recency and different bureau (counted only when the wording already overlaps), ranks likely duplicates and lists shared terms as the explanation. An officer links or dismisses; nothing is merged or closed automatically.
+
+Complainant identity is masked in the API for everyone except the assigned bureau officer and Admin. Regional officers see a redacted summary; institution users see only that a case exists, its category and its status. A public portal lets people submit a complaint and track it by ID; an officer reviews each submission before it becomes a registered case.
+
+TECHNOLOGY
+
+A modular monolith with ports and adapters. Frontend: Next.js, TypeScript, Tailwind, TanStack Query, Recharts. Backend: FastAPI, Pydantic v2, SQLAlchemy 2, Alembic. Database: SQLite for the demo with a PostgreSQL-compatible schema. Authentication: JWT with role-based guards and bcrypt. Scheduling: APScheduler with a simulated clock for live demonstration. Analysis: scikit-learn TF-IDF; optional embeddings behind a flag. OCR: pytesseract and pdf2image with regex fallback. Each use case runs in one transaction (state change, audit entry, timeline event and obligation changes together), notifications go through a transactional outbox, core entities use optimistic locking, and constraints are enforced in the database.
+
+TRUST AND SAFEGUARDS
+
+The system is advisory only. It never approves, rejects, penalises or triggers an inspection; every consequential action is a recorded human click. Every computed output (extracted date, overlap score, risk band, forecast) is labelled as a suggestion and shows its reasons. Labels are exact: OCR plus rules, TF-IDF similarity, rule-based risk, heuristic forecast. No blockchain is claimed. Every state change writes an audit entry hashed with SHA-256 and chained to the previous entry, and a verify function reports the first altered entry. Stages, SLAs, ladders, document types and complaint categories are admin-editable, so the platform follows the Approval Process Handbook rather than our defaults.
+
+PROTOTYPE
+
+A working prototype uses fictional data only (15 institutions, about 60 applications, 200 obligations, 40 complaints) with demo accounts per role. It is not an official AICTE system. Stage names and SLAs are illustrative defaults to be checked against the real handbook.
+
+EXPECTED OUTCOMES
+
+Less repetitive follow-up; stuck stages visible the day they slip; fewer expired documents and missed undertakings; less duplicated complaint handling across bureaus; clear ownership; a complete audit trail; and one timeline per institution for better-informed decisions. We make no percentage claims without real data; the platform is built so pendency, on-time fulfilment and time-to-disposal can be measured once real data is available.
